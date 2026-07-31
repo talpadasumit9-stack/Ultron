@@ -1,9 +1,7 @@
-const sysStatus = document.getElementById('sys-status');
-const transcriptBox = document.getElementById('transcript-box');
 const aiResponse = document.getElementById('ai-response');
 const videoElement = document.getElementById('webcam');
 
-// --- THREE.JS NEURAL CORE ---
+// --- THREE.JS ULTRON CORE ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -37,47 +35,40 @@ scene.add(particleSystem);
 
 camera.position.z = 30;
 
-let isSpeaking = false;
+let targetScale = 1.0;
+let currentScale = 1.0;
 
 function animate() {
     requestAnimationFrame(animate);
     
+    // Smooth Scale Transition according to Hand Gestures
+    currentScale += (targetScale - currentScale) * 0.1;
+    coreMesh.scale.set(currentScale, currentScale, currentScale);
+    particleSystem.scale.set(currentScale * 1.1, currentScale * 1.1, currentScale * 1.1);
+
     coreMesh.rotation.y += 0.005;
     particleSystem.rotation.y -= 0.002;
-
-    if(isSpeaking) {
-        const pulse = 1 + Math.sin(Date.now() * 0.01) * 0.25;
-        coreMesh.scale.set(pulse, pulse, pulse);
-        particleSystem.scale.set(pulse * 1.1, pulse * 1.1, pulse * 1.1);
-    }
 
     renderer.render(scene, camera);
 }
 animate();
 
-// --- BROWSER VOICE SPEECH SYNTHESIS ---
+// --- DEEP ULTRON VOICE PROCESSOR ---
 function speakUltron(text) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     
     const voices = window.speechSynthesis.getVoices();
-    const deepVoice = voices.find(v => v.name.includes("Google UK English Male") || v.name.includes("Male") || v.lang === "en-US");
+    const deepVoice = voices.find(v => v.lang.includes("en-US") || v.lang.includes("en-GB"));
     if(deepVoice) utterance.voice = deepVoice;
 
-    utterance.pitch = 0.5; // Deep voice
-    utterance.rate = 0.9;
-
-    utterance.onstart = () => { isSpeaking = true; };
-    utterance.onend = () => { 
-        isSpeaking = false;
-        coreMesh.scale.set(1, 1, 1);
-        particleSystem.scale.set(1, 1, 1);
-    };
+    utterance.pitch = 0.2; // Maximum Deep Pitch
+    utterance.rate = 0.85;  // Intimidating pacing
 
     window.speechSynthesis.speak(utterance);
 }
 
-// --- SPEECH RECOGNITION (NO PASSCODE NEEDED) ---
+// --- SPEECH RECOGNITION ---
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.continuous = true;
@@ -85,9 +76,7 @@ recognition.lang = 'en-US';
 
 recognition.onresult = async (event) => {
     const text = event.results[event.resultIndex][0].transcript.toLowerCase().trim();
-    transcriptBox.innerText = `>> ${text}`;
 
-    // Direct command execution
     try {
         const res = await fetch('/api/command', {
             method: 'POST',
@@ -99,16 +88,21 @@ recognition.onresult = async (event) => {
         if(data.status === "success") {
             aiResponse.innerText = data.response;
             speakUltron(data.response);
+            
+            // Text automatically fades out after 5 seconds
+            setTimeout(() => {
+                aiResponse.innerText = "";
+            }, 5000);
         }
     } catch (e) {
-        aiResponse.innerText = "Ultron: Link connection failed.";
+        aiResponse.innerText = "Connection Error";
     }
 };
 
 recognition.onend = () => recognition.start();
 recognition.start();
 
-// --- MEDIAPIPE HAND TRACKING CONTROL ---
+// --- HAND GESTURE CONTROL (OPEN = BIG, CLOSE = SMALL) ---
 const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
@@ -124,12 +118,16 @@ hands.onResults((results) => {
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
         
-        const indexX = landmarks[8].x;
-        const indexY = landmarks[8].y;
+        // Landmark 4 = Thumb tip, Landmark 8 = Index finger tip
+        const thumb = landmarks[4];
+        const index = landmarks[8];
 
-        coreMesh.rotation.y = (indexX - 0.5) * 10;
-        coreMesh.rotation.x = (indexY - 0.5) * 10;
-        particleSystem.rotation.y = (indexX - 0.5) * 5;
+        // Euclidean Distance between Thumb and Index
+        const distance = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+
+        // Hand open (distance large) -> Core scales UP
+        // Hand close/fist (distance small) -> Core scales DOWN
+        targetScale = Math.min(Math.max(distance * 4.5, 0.4), 2.5);
     }
 });
 
