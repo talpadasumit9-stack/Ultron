@@ -1,71 +1,77 @@
+// --- SECURITY SYSTEM ---
+const correctCode = "xo23"; // Yahan apna secret code daalein!
+
+function checkCode() {
+    const entered = document.getElementById("passcode").value;
+    if (entered === correctCode) {
+        document.getElementById("lock-screen").classList.remove("active");
+        document.getElementById("main-ui").classList.add("active");
+        speak("Access granted. Welcome back, Boss.");
+    } else {
+        document.getElementById("lock-error").innerText = "ACCESS DENIED!";
+    }
+}
+
+// --- VOICE & THEME SYSTEM ---
 const micBtn = document.getElementById('mic-btn');
 const chatBox = document.getElementById('chat-box');
-const statusText = document.getElementById('status-text');
+const bodyTheme = document.getElementById('body-theme');
+const systemTitle = document.getElementById('system-title');
 
-// Speech Recognition Setup (Aapki aawaz sunne ke liye)
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
-recognition.lang = 'en-US'; // Isko 'hi-IN' kar sakte hain hindi ke liye
-recognition.interimResults = false;
-
-// Speech Synthesis Setup (Ultron ki aawaz bolne ke liye)
+recognition.lang = 'en-US'; 
 const synth = window.speechSynthesis;
 
 function speak(text) {
     const utterance = new SpeechSynthesisUtterance(text);
-    // Voice ko thoda bhari aur robotic banane ke settings
-    utterance.pitch = 0.1; 
+    utterance.pitch = 0.2; 
     utterance.rate = 0.9;
     synth.speak(utterance);
 }
 
 function appendMessage(sender, message) {
-    const p = document.createElement('p');
-    p.innerHTML = `<strong>${sender}:</strong> ${message}`;
-    chatBox.appendChild(p);
+    chatBox.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 micBtn.addEventListener('click', () => {
     recognition.start();
     micBtn.classList.add('listening');
-    micBtn.innerText = "Listening...";
-    statusText.innerText = "Ultron is listening to your command...";
+    micBtn.innerText = "LISTENING...";
 });
 
 recognition.onresult = async (event) => {
-    const userText = event.results[0][0].transcript;
+    const userText = event.results[0][0].transcript.toLowerCase();
     appendMessage("You", userText);
-    
     micBtn.classList.remove('listening');
-    micBtn.innerText = "🎙️ Start Voice Command";
-    statusText.innerText = "Processing command...";
+    micBtn.innerText = "🎙️ INITIATE COMMAND";
 
+    // CLIENT SIDE THEME SWITCH LOGIC
+    if (userText.includes("change theme") || userText.includes("yellow theme")) {
+        bodyTheme.className = "theme-yellow";
+        systemTitle.innerText = "HOLOGRAPHIC OS";
+    } else if (userText.includes("red theme")) {
+        bodyTheme.className = "theme-red";
+        systemTitle.innerText = "ULTRON OS";
+    }
+
+    // SERVER KO MESSAGE BHEJNA
     try {
-        // Render server par message bhejna
         const response = await fetch('/ask_ultron', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: userText })
         });
-        
         const data = await response.json();
-        const ultronReply = data.reply;
-        
-        appendMessage("Ultron", ultronReply);
-        speak(ultronReply);
-        statusText.innerText = "System Standby...";
-
-    } catch (error) {
-        console.error("Error:", error);
-        statusText.innerText = "Connection Failed!";
-        appendMessage("System", "Error connecting to Ultron Core.");
+        appendMessage("System", data.reply);
+        speak(data.reply);
+    } catch (e) {
+        appendMessage("System", "Network Error.");
     }
 };
 
-recognition.onerror = (event) => {
+recognition.onerror = () => {
     micBtn.classList.remove('listening');
-    micBtn.innerText = "🎙️ Start Voice Command";
-    statusText.innerText = "Audio capture failed. Try again.";
+    micBtn.innerText = "🎙️ INITIATE COMMAND";
 };
-
