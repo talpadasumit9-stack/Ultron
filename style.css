@@ -24,41 +24,20 @@ body {
 
 .overlay {
     position: absolute;
-    top: 50%;
+    bottom: 12%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     z-index: 10;
     text-align: center;
     pointer-events: none;
-    width: 80%;
+    width: 85%;
     max-width: 600px;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    letter-spacing: 2px;
-    background: rgba(255, 68, 0, 0.2);
-    border: 1px solid #ff4400;
-    color: #ffaa00;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px #ff4400;
-}
-
-#transcript-box {
-    font-size: 1.2rem;
-    color: #ffaa77;
-    margin-bottom: 12px;
-    font-style: italic;
-    min-height: 1.5em;
-}
-
 #ai-response {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    color: #ffcc00;
-    text-shadow: 0 0 15px #ffaa00;
-    min-height: 2em;
+    color: #ffaa00;
+    text-shadow: 0 0 15px #ff4400;
+    transition: opacity 0.5s ease-in-out;
 }
