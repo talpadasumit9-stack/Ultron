@@ -5,22 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultron Neural Interface</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Three.js for 3D Graphics -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- MediaPipe Hand Tracking Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body id="ui-body">
+
+    <!-- Hidden Video Feed for Hand Tracking -->
+    <video id="webcam" autoplay playsinline style="display:none;"></video>
 
     <!-- 3D Canvas Background -->
     <div id="canvas-container"></div>
 
     <!-- UI Overlay Center Text -->
     <div class="overlay">
-        <div class="status-badge" id="sys-status">SYSTEM OFFLINE</div>
-        <h1 id="main-title">ULTRON CORE</h1>
-        <p id="transcript-box">Waiting for voice command...</p>
+        <div class="status-badge" id="sys-status">SYSTEM LOCKED</div>
+        <p id="transcript-box">Say "ultron initiate" to unlock...</p>
         <p id="ai-response" class="glow-text"></p>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
