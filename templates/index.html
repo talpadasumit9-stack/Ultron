@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultron AI Interface</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="hud-container">
+        <div class="ultron-core">
+            <div class="core-inner"></div>
+        </div>
+        <h1 class="title">ULTRON SYSTEM</h1>
+        <div class="chat-box" id="chat-box">
+            <!-- Messages yahan aayengi -->
+        </div>
+        <div class="controls">
+            <button id="mic-btn" class="glowing-btn">🎙️ Start Voice Command</button>
+        </div>
+        <p id="status-text">System Standby...</p>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+
