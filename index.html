@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultron Neural Interface</title>
+    <title>Ultron Neural Core</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -11,13 +11,14 @@
 </head>
 <body id="ui-body">
 
+    <!-- Hidden Video Element for MediaPipe -->
     <video id="webcam" autoplay playsinline style="display:none;"></video>
 
+    <!-- 3D Canvas Background -->
     <div id="canvas-container"></div>
 
+    <!-- Clean Interface Overlay (No Crowded Text) -->
     <div class="overlay">
-        <div class="status-badge" id="sys-status">SYSTEM ACTIVE</div>
-        <p id="transcript-box">Listening for commands...</p>
         <p id="ai-response" class="glow-text"></p>
     </div>
 
