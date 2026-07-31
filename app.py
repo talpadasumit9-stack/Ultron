@@ -1,15 +1,22 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from twilio.rest import Client
 
 app = Flask(__name__)
 
-# --- TWILIO SETUP ---
-# Yahan apni Twilio details dalein
-TWILIO_SID = 'YOUR_TWILIO_ACCOUNT_SID'
-TWILIO_AUTH_TOKEN = 'YOUR_TWILIO_AUTH_TOKEN'
-TWILIO_NUMBER = '+1234567890' # Twilio wala number
+# --- TWILIO ENVIRONMENT VARIABLES SETUP ---
+# System variables se details retrieve karna
+TWILIO_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
 
-client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
+# Twilio Client Initialization
+twilio_client = None
+if TWILIO_SID and TWILIO_AUTH_TOKEN:
+    try:
+        twilio_client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
+    except Exception as e:
+        print(f"Twilio initialization error: {e}")
 
 ultron_memory = []
 
@@ -24,31 +31,35 @@ def ask_ultron():
     user_message = data.get("message", "").lower()
     reply = ""
 
-    # SMS Bhejne ka Logic
-    if "send message to dhaval" in user_message:
-        try:
-            # Dhaval ka real number yahan dalein (country code ke sath, jaise +91...)
-            dhaval_number = "+919876543210" 
-            msg = client.messages.create(
-                body="Hello from Ultron. This is an automated system message.",
-                from_=TWILIO_NUMBER,
-                to=dhaval_number
-            )
-            reply = "Message has been successfully sent to Dhaval, Boss."
-        except Exception as e:
-            reply = "Sorry Boss, there was an error sending the message over the Twilio network."
+    # --- SMS COMMAND HANDLING ---
+    if "send message" in user_message or "message bhejo" in user_message:
+        if not twilio_client or not TWILIO_NUMBER:
+            reply = "Twilio API is not configured properly, Boss. Please check Environment Variables."
+        else:
+            try:
+                # Aap dynamic recipient number & message logic pass kar sakte hain
+                target_number = os.environ.get('DEFAULT_TARGET_NUMBER', '+910000000000')
+                
+                message = twilio_client.messages.create(
+                    body=f"Ultron Alert: Command executed - '{user_message}'",
+                    from_=TWILIO_NUMBER,
+                    to=target_number
+                )
+                reply = f"SMS has been successfully dispatched via Twilio Network, Boss."
+            except Exception as e:
+                reply = f"Failed to send SMS via Twilio. Error: {str(e)}"
 
-    # Theme Logic
+    # --- THEME COMMANDS ---
     elif "change theme" in user_message or "yellow theme" in user_message:
-        reply = "Switching interface to alternative holographic mode."
+        reply = "Switching interface to alternative holographic mode, Boss."
     
-    # Normal Conversation
-    elif "hello" in user_message:
-        reply = "Hello Boss. All systems are online."
+    # --- GENERAL RESPONSES ---
+    elif "hello" in user_message or "hi" in user_message:
+        reply = "Hello Boss. All systems and communication protocols are online."
     else:
         reply = f"Command processed: {user_message}."
 
-    # Memory
+    # Memory Tracking
     if "theme" not in user_message and "message" not in user_message:
         ultron_memory.append(user_message)
         if len(ultron_memory) > 5:
@@ -58,4 +69,4 @@ def ask_ultron():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-    
+                              
