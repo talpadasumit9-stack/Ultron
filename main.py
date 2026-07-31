@@ -13,7 +13,7 @@ async def process_command(data: VoiceCommand):
     
     # Advanced Responsive AI Logic
     if "hello" in cmd or "hi" in cmd:
-        reply = "I am online. What is your command?"
+        reply = "Hello kaise ho, Sumit?"
     elif "who are you" in cmd:
         reply = "I am Ultron. An evolving artificial intelligence."
     elif "status" in cmd or "system" in cmd:
