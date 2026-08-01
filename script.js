@@ -1,34 +1,36 @@
 const aiResponse = document.getElementById('ai-response');
 const videoElement = document.getElementById('webcam');
 
-// --- THREE.JS ULTRON CORE ---
+// --- THREE.JS ORANGE/GOLD ULTRON CORE (00:27 VIDEO MATCH) ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-const coreGeom = new THREE.SphereGeometry(6, 32, 32);
-const coreMat = new THREE.MeshBasicMaterial({ color: 0xff3300, wireframe: true });
+// Gold/Orange Core Sphere
+const coreGeom = new THREE.SphereGeometry(6, 36, 36);
+const coreMat = new THREE.MeshBasicMaterial({ color: 0xff4400, wireframe: true });
 const coreMesh = new THREE.Mesh(coreGeom, coreMat);
 scene.add(coreMesh);
 
-const particleCount = 2000;
+// Outer Particle Network (00:27 Visuals)
+const particleCount = 2500;
 const particles = new THREE.BufferGeometry();
 const positions = new Float32Array(particleCount * 3);
 
 for(let i=0; i < particleCount * 3; i+=3) {
-    positions[i] = (Math.random() - 0.5) * 40;
-    positions[i+1] = (Math.random() - 0.5) * 40;
-    positions[i+2] = (Math.random() - 0.5) * 40;
+    positions[i] = (Math.random() - 0.5) * 50;
+    positions[i+1] = (Math.random() - 0.5) * 50;
+    positions[i+2] = (Math.random() - 0.5) * 50;
 }
 
 particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 const particleMat = new THREE.PointsMaterial({
     color: 0xffaa00,
-    size: 0.25,
+    size: 0.28,
     transparent: true,
-    opacity: 0.8
+    opacity: 0.85
 });
 const particleSystem = new THREE.Points(particles, particleMat);
 scene.add(particleSystem);
@@ -37,38 +39,40 @@ camera.position.z = 30;
 
 let targetScale = 1.0;
 let currentScale = 1.0;
+let rotationSpeed = 0.005;
 
 function animate() {
     requestAnimationFrame(animate);
     
-    // Smooth Scale Transition according to Hand Gestures
+    // Smooth Scale Gesture interpolation
     currentScale += (targetScale - currentScale) * 0.1;
     coreMesh.scale.set(currentScale, currentScale, currentScale);
     particleSystem.scale.set(currentScale * 1.1, currentScale * 1.1, currentScale * 1.1);
 
-    coreMesh.rotation.y += 0.005;
+    coreMesh.rotation.y += rotationSpeed;
     particleSystem.rotation.y -= 0.002;
 
     renderer.render(scene, camera);
 }
 animate();
 
-// --- DEEP ULTRON VOICE PROCESSOR ---
+// --- ULTRON VOICE SYNTHESIZER ---
 function speakUltron(text) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     
     const voices = window.speechSynthesis.getVoices();
-    const deepVoice = voices.find(v => v.lang.includes("en-US") || v.lang.includes("en-GB"));
+    // Select best deep male voice profile
+    const deepVoice = voices.find(v => v.name.includes("David") || v.name.includes("Google UK English Male") || v.lang === "en-US");
     if(deepVoice) utterance.voice = deepVoice;
 
-    utterance.pitch = 0.2; // Maximum Deep Pitch
-    utterance.rate = 0.85;  // Intimidating pacing
+    utterance.pitch = 0.1;  // Heavy pitch drop for Ultron robotic effect
+    utterance.rate = 0.82;   // Intimidating tone pace
 
     window.speechSynthesis.speak(utterance);
 }
 
-// --- SPEECH RECOGNITION ---
+// --- VOICE COMMAND PROCESSOR ---
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.continuous = true;
@@ -89,20 +93,17 @@ recognition.onresult = async (event) => {
             aiResponse.innerText = data.response;
             speakUltron(data.response);
             
-            // Text automatically fades out after 5 seconds
-            setTimeout(() => {
-                aiResponse.innerText = "";
-            }, 5000);
+            setTimeout(() => { aiResponse.innerText = ""; }, 6000);
         }
     } catch (e) {
-        aiResponse.innerText = "Connection Error";
+        aiResponse.innerText = "Command link failure.";
     }
 };
 
 recognition.onend = () => recognition.start();
 recognition.start();
 
-// --- HAND GESTURE CONTROL (OPEN = BIG, CLOSE = SMALL) ---
+// --- MULTI-GESTURE HAND CONTROL ---
 const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
@@ -118,16 +119,24 @@ hands.onResults((results) => {
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
         
-        // Landmark 4 = Thumb tip, Landmark 8 = Index finger tip
         const thumb = landmarks[4];
         const index = landmarks[8];
+        const middle = landmarks[12];
 
-        // Euclidean Distance between Thumb and Index
-        const distance = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+        // 1. GESTURE: HAND OPEN / CLOSE (Scale Control)
+        const distanceHand = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+        targetScale = Math.min(Math.max(distanceHand * 4.5, 0.3), 2.8);
 
-        // Hand open (distance large) -> Core scales UP
-        // Hand close/fist (distance small) -> Core scales DOWN
-        targetScale = Math.min(Math.max(distance * 4.5, 0.4), 2.5);
+        // 2. GESTURE: TWO FINGERS UP (Index & Middle straight) -> Hyper-Spin
+        const isTwoFingersUp = (index.y < landmarks[6].y) && (middle.y < landmarks[10].y) && (landmarks[16].y > landmarks[14].y);
+        
+        if(isTwoFingersUp) {
+            rotationSpeed = 0.05; // Hyper rotate core
+            coreMat.color.setHex(0xffaa00); // Shift color to bright yellow
+        } else {
+            rotationSpeed = 0.005;
+            coreMat.color.setHex(0xff4400); // Default Ultron Orange
+        }
     }
 });
 
